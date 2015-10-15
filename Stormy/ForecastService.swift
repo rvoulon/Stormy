@@ -20,7 +20,7 @@ struct ForecastService {
     Inconsistencies? Or they really don't mean the same thing?
     Started poking around in the documentation...
     */
-    typealias getForecastCompletion = CurrentWeather? -> Void
+    typealias getForecastCompletion = Forecast? -> Void
     
     init(APIKey: String) {
         // No need to prefix these with "self." in Swift (in Objective-C you would).
@@ -35,8 +35,8 @@ struct ForecastService {
             let networkOperation = NetworkOperation(url: forecastURL)
             networkOperation.downloadJSONFromURL() {
                 (let jsonDictionary) in
-                let currentWeather = self.getCurrentWeatherFromJSON(jsonDictionary)
-                completion(currentWeather)
+                let forecast = Forecast(weatherDictionary: jsonDictionary)
+                completion(forecast)
             }
             
         } else {
@@ -44,12 +44,20 @@ struct ForecastService {
         }
     }
     
-    func getCurrentWeatherFromJSON(jsonDictionary: [String: AnyObject]?) -> CurrentWeather? {
-        if let currentWeatherDictionary = jsonDictionary?["currently"] as? [String: AnyObject] {
-            return CurrentWeather(weatherDictionary: currentWeatherDictionary)
-        } else {
-            print("jsonDictionary returned nil for 'currently' key")
-            return nil
-        }
-    }
+//    func getCurrentWeatherFromJSON(jsonDictionary: [String: AnyObject]?) -> CurrentWeather? {
+//        if let currentWeatherDictionary = jsonDictionary?["currently"] as? [String: AnyObject] {
+//            return CurrentWeather(weatherDictionary: currentWeatherDictionary)
+//        } else {
+//            print("jsonDictionary returned nil for 'currently' key")
+//            return nil
+//        }
+//    }
 }
+
+
+
+
+
+
+
+

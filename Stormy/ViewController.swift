@@ -9,80 +9,67 @@
 import UIKit
 
 class ViewController: UIViewController {
-
-    @IBOutlet weak var currentTempLabel: UILabel?
-    @IBOutlet weak var currentHumidityLabel: UILabel?
-    @IBOutlet weak var currentRainLabel: UILabel?
-    @IBOutlet weak var currentWeatherIcon: UIImageView?
-    @IBOutlet weak var currentWeatherSummary: UILabel?
-    @IBOutlet weak var refreshButton: UIButton?
-    @IBOutlet weak var activityIndicator: UIActivityIndicatorView?
     
-    private let forecastAPIKey = "6e569955c6f31e16711573389b862cb0"
-    let coordinate: (lat: Double, long: Double) = (45.5000,-73.5833)
-        
+    var dailyWeather: DailyWeather? {
+        didSet {
+            configureView()
+        }
+    }
+    
+    @IBOutlet weak var weatherIcon: UIImageView?
+    @IBOutlet weak var summaryLabel: UILabel?
+    @IBOutlet weak var sunriseTimeLabel: UILabel?
+    @IBOutlet weak var sunsetTimeLabel: UILabel?
+    
+    @IBOutlet weak var lowTemperatureLabel: UILabel?
+    @IBOutlet weak var highTemperatureLabel: UILabel?
+    @IBOutlet weak var precipitationLabel: UILabel?
+    @IBOutlet weak var humidityLabel: UILabel?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
-        retrieveWeatherForecast()
+        configureView()
+    }
+    
+    func configureView() {
+        if let weather = dailyWeather {
+            // Update UI with information from the data model
+            self.title = weather.day
+            weatherIcon?.image = weather.largeIcon
+            summaryLabel?.text = weather.summary
+            sunriseTimeLabel?.text = weather.sunriseTime
+            sunsetTimeLabel?.text = weather.sunsetTime
+            
+            if let lowTemp = weather.minTemperature,
+                let highTemp = weather.maxTemperature,
+                let precipitation = weather.precipChance,
+                let humidity = weather.humidity {
+                    lowTemperatureLabel?.text = "\(fahrenheitToCelsius(lowTemp))º"
+                    highTemperatureLabel?.text = "\(fahrenheitToCelsius(highTemp))º"
+                    precipitationLabel?.text = "\(precipitation)%"
+                    humidityLabel?.text = "\(humidity)%"
+            }
+        }
+        
+        // Configure nav bar back button
+        if let barButtonFont = UIFont(name: "HelveticaNeue-Thin", size: 20.0) {
+            let barButtonAttributesDictionary: [String: AnyObject]? = [
+                NSForegroundColorAttributeName: UIColor.whiteColor(), NSFontAttributeName: barButtonFont
+            ]
+            UIBarButtonItem.appearance().setTitleTextAttributes(barButtonAttributesDictionary, forState: .Normal)
+        }
+
     }
     
     override func preferredStatusBarStyle() -> UIStatusBarStyle {
         return UIStatusBarStyle.LightContent
     }
+
+    
+    // MARK: - Helper Methods
     
     func fahrenheitToCelsius(fahrenheit: Int) -> Int {
         return (fahrenheit - 32) * 5 / 9
-    }
-    
-    func retrieveWeatherForecast() {
-        let forecastService = ForecastService(APIKey: forecastAPIKey)
-        forecastService.getForecast(lat: coordinate.lat, long: coordinate.long) {
-            (let currently) -> Void in
-            
-            if let currentWeather = currently {
-                // Update UI (get back on the main thread)
-                dispatch_async(dispatch_get_main_queue()) {
-                    () -> Void in
-                    // Execute closure (will happen on the main queue)
-                    if let temperature = currentWeather.temperature {
-                        self.currentTempLabel?.text = "\(self.fahrenheitToCelsius(temperature))º"
-                    }
-                    
-                    if let humidity = currentWeather.humidity {
-                        self.currentHumidityLabel?.text = "\(humidity)%"
-                    }
-                    
-                    if let precipitation = currentWeather.precipProbability {
-                        self.currentRainLabel?.text = "\(precipitation)%"
-                    }
-                    
-                    if let icon = currentWeather.icon {
-                        self.currentWeatherIcon?.image = icon
-                    }
-                    
-                    if let summary = currentWeather.summary {
-                        self.currentWeatherSummary?.text = "\(summary)"
-                    }
-                    
-                    self.toggleRefreshAnimation(false)
-                }
-            }
-        }
-    }
-    
-    func toggleRefreshAnimation(on: Bool) {
-        refreshButton?.hidden = on
-        if on {
-            activityIndicator?.startAnimating()
-        } else {
-            activityIndicator?.stopAnimating()
-        }
-    }
-    
-    @IBAction func refreshWeather() {
-        toggleRefreshAnimation(true)
-        retrieveWeatherForecast()
     }
     
 }

@@ -35,15 +35,21 @@ class NetworkOperation {
             if let httpResponse = response as? NSHTTPURLResponse {
                 switch (httpResponse.statusCode) {
                 case 200:
-                    print("Case 200:")
                     // 2. Create JSON object with data
                     do {
                         let jsonDictionary = try NSJSONSerialization.JSONObjectWithData(data!, options: []) as? [String: AnyObject]
                         completion(jsonDictionary)
-                        print("JSON dictionary created")
+                    // Pasan's code
+                    } catch {
+                        completion(nil)
+                    }
+
+                    /*
+                    My original code:
                     } catch let error {
                         print("JSON Serialization failed. Error: \(error)")
                     }
+                    */
                 default:
                     print("GET request not successful. HTTP status code: \(httpResponse.statusCode)")
                 }
